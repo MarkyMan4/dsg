@@ -1,0 +1,17 @@
+[project]
+name = "dsg"
+version = "0.1.0"
+description = "Data site generator - a static site generator for data apps"
+readme = "README.md"
+authors = [
+    { name = "Markus Hutnik", email = "markus.hutnik@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+dsg = "dsg:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
