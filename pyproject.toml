@@ -7,7 +7,9 @@ authors = [
     { name = "Markus Hutnik", email = "markus.hutnik@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "jinja2>=3.1.5",
+]
 
 [project.scripts]
 dsg = "dsg:main"
