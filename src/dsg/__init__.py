@@ -19,3 +19,5 @@ def main() -> None:
     
     if args.subcommand == "init":
         print("initialize new project")
+    elif args.subcommand == "build":
+        pass
