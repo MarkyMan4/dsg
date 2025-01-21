@@ -1,8 +1,7 @@
 import argparse
-import os
 from pathlib import Path
 
-import markdown
+from .render import render_pages
 
 # initial contents of index.md
 index_md_init = """# My DSG Project
@@ -46,11 +45,11 @@ def parse_arguments():
     args = parser.parse_args()
 
     return args
-    
+
 
 def main() -> None:
     args = parse_arguments()
-    
+
     if args.subcommand == "init":
         initialize_project(args.project_name)
 
@@ -58,10 +57,6 @@ def main() -> None:
         # to build:
         #   1. render Jinja markdown templates
         #   2. convert markdown to HTML
-        with open("tests/sample_proj/index.md") as infile:
-            text = infile.read()
-
-        html = markdown.markdown(text)
-
-        with open("index.html", "w") as outfile:
-            outfile.write(html)
+        # with open("tests/sample_proj/index.md") as infile:
+        #     text = infile.read()
+        render_pages()
