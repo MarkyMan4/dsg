@@ -1,38 +1,7 @@
 import argparse
 from pathlib import Path
 
-from .render import render_pages
-
-# initial contents of index.md
-index_md_init = """# My DSG Project
-
-Hello data!
-"""
-
-
-def initialize_project(project_name: str):
-    """
-    Create a new dsg project. This includes:
-        - folder to put the project in
-        - dsg.yml file for project configs
-        - queries directory
-        - pages directory with an index.md
-
-    :param project_name: name of the project
-    :type project_name: str
-    """
-    # TODO handle project already exists
-    queries_path = Path(project_name, "queries")
-    pages_path = Path(project_name, "pages")
-
-    queries_path.mkdir(parents=True)
-    pages_path.mkdir(parents=True)
-
-    with open(Path(project_name, "dsg.yml"), "w") as config_file:
-        config_file.write(f"name: {project_name}\n")
-
-    with open(pages_path / "index.md", "w") as index_file:
-        index_file.write(index_md_init)
+from .core import initialize_project, render_pages
 
 
 def parse_arguments():
@@ -52,11 +21,9 @@ def main() -> None:
 
     if args.subcommand == "init":
         initialize_project(args.project_name)
+        print("Your project has been initialized! To build your project:")
+        print(f"cd {args.project_name}")
+        print("dsg build")
 
     elif args.subcommand == "build":
-        # to build:
-        #   1. render Jinja markdown templates
-        #   2. convert markdown to HTML
-        # with open("tests/sample_proj/index.md") as infile:
-        #     text = infile.read()
         render_pages()

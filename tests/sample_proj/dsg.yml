@@ -1,1 +1,6 @@
 name: sample_proj
+
+connection:
+  type: duckdb
+  settings:
+    file: path/to/your/database.duckdb # change this!

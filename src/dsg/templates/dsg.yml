@@ -1,0 +1,6 @@
+name: {{ project_name }}
+
+connection:
+  type: duckdb
+  settings:
+    file: path/to/your/database.duckdb # change this!
