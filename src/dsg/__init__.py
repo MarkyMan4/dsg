@@ -1,5 +1,4 @@
 import argparse
-from pathlib import Path
 
 from .core import initialize_project, render_pages
 

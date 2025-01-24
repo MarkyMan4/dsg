@@ -1,7 +1,9 @@
+import os
 import shutil
 from os.path import dirname, join
 from pathlib import Path
 
+import ibis
 import markdown
 import plotly.express as px
 from jinja2 import Environment, FileSystemLoader
@@ -41,8 +43,8 @@ def initialize_project(project_name: str):
     shutil.copy(sample_index_path, pages_path)
     
 
-def bar_chart(x, y) -> str:
-    fig = px.bar(x=x, y=y)
+def bar_chart(data, x: str, y: str) -> str:
+    fig = px.bar(data.to_pandas(), x=x, y=y)
     return fig.to_html()
 
 
@@ -53,8 +55,23 @@ def render_pages():
     # register custom jinja functions
     env.globals["bar_chart"] = bar_chart
 
+    # load queries into environment
+    # TODO clean this up
+    conn = ibis.connect("duckdb://test.duckdb")
+    t = conn.table(conn.list_tables()[0])
+    context = {}
+
+    for file in os.listdir("sql"):
+        filepath = Path("sql", file)
+        with open(filepath) as sql_file:
+            sql = sql_file.read()
+
+        res = t.sql(sql)
+        key = file.split(".")[0]
+        context[key] = res
+
     templ = env.get_template("index.md")
-    content = markdown.markdown(templ.render())
+    content = markdown.markdown(templ.render(**context))
 
     page_templ = env.get_template("page.html")
     page_html = page_templ.render(content=content)
