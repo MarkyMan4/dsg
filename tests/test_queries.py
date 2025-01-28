@@ -21,6 +21,9 @@ def main():
         (5, 9)
     """)
 
+    df = db.sql("from test").pl()
+    print(df)
+
 
 if __name__ == "__main__":
     main()

@@ -3,9 +3,10 @@ import shutil
 from os.path import dirname, join
 from pathlib import Path
 
-import ibis
+import duckdb
 import markdown
 import plotly.express as px
+import polars as pl
 from jinja2 import Environment, FileSystemLoader
 
 TEMPLATE_DIR = join(dirname(__file__), "templates")
@@ -43,8 +44,8 @@ def initialize_project(project_name: str):
     shutil.copy(sample_index_path, pages_path)
     
 
-def bar_chart(data, x: str, y: str) -> str:
-    fig = px.bar(data.to_pandas(), x=x, y=y)
+def bar_chart(data: pl.DataFrame, x: str, y: str) -> str:
+    fig = px.bar(data, x=x, y=y)
     return fig.to_html()
 
 
@@ -56,9 +57,8 @@ def render_pages():
     env.globals["bar_chart"] = bar_chart
 
     # load queries into environment
-    # TODO clean this up
-    conn = ibis.connect("duckdb://test.duckdb")
-    t = conn.table(conn.list_tables()[0])
+    # TODO work with more than just duckdb
+    conn = duckdb.connect("test.duckdb")
     context = {}
 
     for file in os.listdir("sql"):
@@ -66,8 +66,8 @@ def render_pages():
         with open(filepath) as sql_file:
             sql = sql_file.read()
 
-        res = t.sql(sql)
-        key = file.split(".")[0]
+        res = conn.sql(sql).pl()
+        key = filepath.stem
         context[key] = res
 
     templ = env.get_template("index.md")
