@@ -7,7 +7,10 @@ import duckdb
 import markdown
 import plotly.express as px
 import polars as pl
+import yaml
 from jinja2 import Environment, FileSystemLoader
+
+from .models import ProjectConfig
 
 TEMPLATE_DIR = join(dirname(__file__), "templates")
 
@@ -44,12 +47,24 @@ def initialize_project(project_name: str):
     shutil.copy(sample_index_path, pages_path)
     
 
+def load_config() -> ProjectConfig:
+    config_path = Path("dsg.yml")
+    if not config_path.exists():
+        raise FileNotFoundError("Could not find dsg.yml! Make sure you are in a dsg project directory")
+
+    with open("dsg.yml") as stream:
+        config_data = yaml.safe_load(stream)
+
+    config = ProjectConfig(**config_data)
+
+    return config
+
 def bar_chart(data: pl.DataFrame, x: str, y: str) -> str:
     fig = px.bar(data, x=x, y=y)
     return fig.to_html()
 
 
-def render_pages():
+def render_pages(config: ProjectConfig):
     # read markdown files, render jinja, convert to HTML, then write to dist folder
     env = Environment(loader=FileSystemLoader(["pages", TEMPLATE_DIR]))
 
@@ -58,7 +73,7 @@ def render_pages():
 
     # load queries into environment
     # TODO work with more than just duckdb
-    conn = duckdb.connect("test.duckdb")
+    conn = duckdb.connect(config.connection.settings["file"])
     context = {}
 
     for file in os.listdir("sql"):

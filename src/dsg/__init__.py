@@ -1,6 +1,6 @@
 import argparse
 
-from .core import initialize_project, render_pages
+from .core import initialize_project, load_config, render_pages
 
 
 def parse_arguments():
@@ -25,4 +25,5 @@ def main() -> None:
         print("dsg build")
 
     elif args.subcommand == "build":
-        render_pages()
+        config = load_config()
+        render_pages(config)
