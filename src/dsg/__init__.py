@@ -19,11 +19,14 @@ def main() -> None:
     args = parse_arguments()
 
     if args.subcommand == "init":
+        print(f"Initializing project {args.project_name}...")
         initialize_project(args.project_name)
-        print("Your project has been initialized! To build your project:")
+        print("Your project has been initialized! Next steps:")
         print(f"cd {args.project_name}")
         print("dsg build")
 
     elif args.subcommand == "build":
+        print(f"building...")
         config = load_config()
         render_pages(config)
+        print("Build complete! The build is available in the dist folder")
