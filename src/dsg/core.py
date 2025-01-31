@@ -5,11 +5,10 @@ from pathlib import Path
 
 import duckdb
 import markdown
-import plotly.express as px
-import polars as pl
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
+from .jinja_functions import bar_chart
 from .models import ProjectConfig
 
 TEMPLATE_DIR = join(dirname(__file__), "templates")
@@ -59,17 +58,13 @@ def load_config() -> ProjectConfig:
 
     return config
 
-def bar_chart(data: pl.DataFrame, x: str, y: str) -> str:
-    fig = px.bar(data, x=x, y=y)
-    return fig.to_html()
-
+def register_functions(env: Environment):
+    env["bar_chart"] = bar_chart
 
 def render_pages(config: ProjectConfig):
     # read markdown files, render jinja, convert to HTML, then write to dist folder
     env = Environment(loader=FileSystemLoader(["pages", TEMPLATE_DIR]))
-
-    # register custom jinja functions
-    env.globals["bar_chart"] = bar_chart
+    register_functions(env)
 
     # load queries into environment
     # TODO work with more than just duckdb
