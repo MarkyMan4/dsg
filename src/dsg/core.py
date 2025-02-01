@@ -3,13 +3,13 @@ import shutil
 from os.path import dirname, join
 from pathlib import Path
 
-import duckdb
 import markdown
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
-from .jinja_functions import bar_chart
-from .models import ProjectConfig
+from dsg.connections.base import get_connection
+from dsg.jinja_functions import bar_chart
+from dsg.models import ProjectConfig
 
 TEMPLATE_DIR = join(dirname(__file__), "templates")
 
@@ -44,12 +44,14 @@ def initialize_project(project_name: str):
     # copy the sample index.md file to the pages directory
     sample_index_path = Path(TEMPLATE_DIR) / "index.md"
     shutil.copy(sample_index_path, pages_path)
-    
+
 
 def load_config() -> ProjectConfig:
     config_path = Path("dsg.yml")
     if not config_path.exists():
-        raise FileNotFoundError("Could not find dsg.yml! Make sure you are in a dsg project directory")
+        raise FileNotFoundError(
+            "Could not find dsg.yml! Make sure you are in a dsg project directory"
+        )
 
     with open("dsg.yml") as stream:
         config_data = yaml.safe_load(stream)
@@ -58,8 +60,10 @@ def load_config() -> ProjectConfig:
 
     return config
 
+
 def register_functions(env: Environment):
-    env["bar_chart"] = bar_chart
+    env.globals["bar_chart"] = bar_chart
+
 
 def render_pages(config: ProjectConfig):
     # read markdown files, render jinja, convert to HTML, then write to dist folder
@@ -67,8 +71,7 @@ def render_pages(config: ProjectConfig):
     register_functions(env)
 
     # load queries into environment
-    # TODO work with more than just duckdb
-    conn = duckdb.connect(config.connection.settings["file"])
+    conn = get_connection(config.connection)
     context = {}
 
     for file in os.listdir("sql"):
@@ -76,7 +79,7 @@ def render_pages(config: ProjectConfig):
         with open(filepath) as sql_file:
             sql = sql_file.read()
 
-        res = conn.sql(sql).pl()
+        res = conn.read_sql(sql)
         key = filepath.stem
         context[key] = res
 
