@@ -17,7 +17,7 @@ def bar_chart(
     title: str = None,
 ) -> str:
     fig = px.bar(data_frame=data, x=x, y=y, color=color, title=title)
-    return fig.to_html()
+    return fig.to_html(full_html=False)
 
 
 def line_chart(
@@ -28,7 +28,7 @@ def line_chart(
     title: str = None,
 ) -> str:
     fig = px.line(data_frame=data, x=x, y=y, color=color, title=title)
-    return fig.to_html()
+    return fig.to_html(full_html=False)
 
 
 def scatter_chart(
@@ -39,7 +39,7 @@ def scatter_chart(
     title: str = None,
 ) -> str:
     fig = px.scatter(data_frame=data, x=x, y=y, color=color, title=title)
-    return fig.to_html()
+    return fig.to_html(full_html=False)
 
 
 def register_functions(env: Environment):

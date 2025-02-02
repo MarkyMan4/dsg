@@ -84,7 +84,7 @@ def render_pages(config: ProjectConfig):
     content = markdown.markdown(templ.render(**context))
 
     page_templ = env.get_template("page.html")
-    page_html = page_templ.render(content=content)
+    page_html = page_templ.render(title=config.name, content=content)
 
     # create the dist folder if it doesn't exist
     dist_path = Path("dist")
