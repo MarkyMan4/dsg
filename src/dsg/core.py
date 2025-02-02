@@ -8,7 +8,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 
 from dsg.connections.base import get_connection
-from dsg.jinja_functions import bar_chart
+from dsg.jinja_functions import register_functions
 from dsg.models import ProjectConfig
 
 TEMPLATE_DIR = join(dirname(__file__), "templates")
@@ -60,9 +60,6 @@ def load_config() -> ProjectConfig:
 
     return config
 
-
-def register_functions(env: Environment):
-    env.globals["bar_chart"] = bar_chart
 
 
 def render_pages(config: ProjectConfig):
