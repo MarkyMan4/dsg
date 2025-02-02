@@ -22,7 +22,7 @@ dependencies = [
 dsg = "dsg:main"
 
 [project.optional-dependencies]
-connection = [
+duckdb = [
     "duckdb>=1.1.3",
 ]
 
