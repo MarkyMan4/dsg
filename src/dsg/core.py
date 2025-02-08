@@ -4,12 +4,13 @@ from os.path import dirname, join
 from pathlib import Path
 
 import markdown
+import polars as pl
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
 from dsg.connections.base import get_connection
 from dsg.jinja_functions import register_functions
-from dsg.models import ProjectConfig
+from dsg.models import ConnectionInfo, ProjectConfig
 
 TEMPLATE_DIR = join(dirname(__file__), "templates")
 
@@ -61,15 +62,11 @@ def load_config() -> ProjectConfig:
     return config
 
 
-
-def render_pages(config: ProjectConfig):
-    # read markdown files, render jinja, convert to HTML, then write to dist folder
-    env = Environment(loader=FileSystemLoader(["pages", TEMPLATE_DIR]))
-    register_functions(env)
-
-    # load queries into environment
-    conn = get_connection(config.connection)
-    context = {}
+def read_queries(conn_info: ConnectionInfo) -> dict[str, pl.DataFrame]:
+    # read queries from sql directory into dictionary where key is file name (without extension)
+    # and value is a polars dataframe with the query result
+    conn = get_connection(conn_info)
+    query_results = {}
 
     for file in os.listdir("sql"):
         filepath = Path("sql", file)
@@ -78,7 +75,17 @@ def render_pages(config: ProjectConfig):
 
         res = conn.read_sql(sql)
         key = filepath.stem
-        context[key] = res
+        query_results[key] = res
+
+    return query_results
+
+def render_pages(config: ProjectConfig):
+    # read markdown files, render jinja, convert to HTML, then write to dist folder
+    env = Environment(loader=FileSystemLoader(["pages", TEMPLATE_DIR]))
+    register_functions(env)
+
+    # load queries into environment
+    context = read_queries(config.connection)
 
     templ = env.get_template("index.md")
     content = markdown.markdown(templ.render(**context))
