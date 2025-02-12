@@ -6,14 +6,35 @@
     <title>{{ title }}</title>
 
     <style>
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-        margin-left: 15%;
-        margin-right: 15%;
-    }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin-left: 15%;
+            margin-right: 15%;
+            margin-top: 20px;
+        }
+
+        #nav {
+            display: inline-block;
+            width: 20%;
+        }
+
+        #content {
+            display: inline-block;
+            width: 60%;
+        }
     </style>
 </head>
 <body>
-    {{ content }}
+    <div id="nav">
+        <ul>
+            <li>item 1</li>
+            <li>item 2</li>
+            <li>item 3</li>
+        </ul>
+    </div>
+
+    <div id="content">
+        {{ content }}
+    </div>
 </body>
 </html>
