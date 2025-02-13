@@ -47,13 +47,24 @@ def initialize_project(project_name: str):
     shutil.copy(sample_index_path, pages_path)
 
 
-def load_config() -> ProjectConfig:
+def check_required_files() -> bool:
+    is_missing_files = False
+
+    # ensure the dsg.yml and index.md files exist
+    index_path = Path("pages", "index.md")
+    if not index_path.exists():
+        print("Could not find index.md! This file is required as your home page")
+        is_missing_files = True
+
     config_path = Path("dsg.yml")
     if not config_path.exists():
-        raise FileNotFoundError(
-            "Could not find dsg.yml! Make sure you are in a dsg project directory"
-        )
+        print("Could not find dsg.yml! Make sure you are in a dsg project directory")
+        is_missing_files = True
 
+    return is_missing_files
+
+
+def load_config() -> ProjectConfig:
     with open("dsg.yml") as stream:
         config_data = yaml.safe_load(stream)
 
@@ -79,7 +90,8 @@ def read_queries(conn_info: ConnectionInfo) -> dict[str, pl.DataFrame]:
 
     return query_results
 
-def render_pages(config: ProjectConfig):
+
+def build_site(config: ProjectConfig):
     # read markdown files, render jinja, convert to HTML, then write to dist folder
     env = Environment(loader=FileSystemLoader(["pages", TEMPLATE_DIR]))
     register_functions(env)
@@ -91,7 +103,7 @@ def render_pages(config: ProjectConfig):
     content = markdown.markdown(templ.render(**context))
 
     page_templ = env.get_template("page.html")
-    page_html = page_templ.render(title=config.name, content=content)
+    page_html = page_templ.render(title=config.name, content=content, pages=[])
 
     # create the dist folder if it doesn't exist
     dist_path = Path("dist")

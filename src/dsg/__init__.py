@@ -1,7 +1,9 @@
 import argparse
 import shutil
+import sys
 
-from .core import initialize_project, load_config, render_pages
+from .core import (build_site, check_required_files, initialize_project,
+                   load_config)
 
 
 def parse_arguments():
@@ -28,9 +30,11 @@ def main() -> None:
         print("dsg build")
 
     elif args.subcommand == "build":
+        if check_required_files():
+            sys.exit()
         print(f"building...")
         config = load_config()
-        render_pages(config)
+        build_site(config)
         print("Build complete! The build is available in the dist folder")
 
     elif args.subcommand == "clean":

@@ -22,15 +22,18 @@
             display: inline-block;
             width: 60%;
         }
+
+        .page-link {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="nav">
-        <ul>
-            <li>item 1</li>
-            <li>item 2</li>
-            <li>item 3</li>
-        </ul>
+    {% if pages|length > 0 %}
+        <div class="page-link"><a href="/index.html">home</a></div>
+        <div class="page-link"><a href="/index.html">asdf</a></div>
+    {% endif %}
     </div>
 
     <div id="content">
