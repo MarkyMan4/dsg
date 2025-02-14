@@ -27,8 +27,9 @@ def initialize_project(project_name: str):
     :type project_name: str
     """
     # TODO handle project already exists
-    sql_path = Path(project_name, "sql")
-    pages_path = Path(project_name, "pages")
+    project_path = Path(project_name)
+    sql_path = project_path / "sql"
+    pages_path = project_path / "pages"
 
     # create directories in project
     sql_path.mkdir(parents=True)
@@ -39,19 +40,19 @@ def initialize_project(project_name: str):
     config_templ = env.get_template("dsg.yml")
     config_content = config_templ.render(project_name=project_name)
 
-    with open(Path(project_name, "dsg.yml"), "w") as config_file:
+    with open(project_path / "dsg.yml", "w") as config_file:
         config_file.write(config_content)
 
     # copy the sample index.md file to the pages directory
     sample_index_path = Path(TEMPLATE_DIR) / "index.md"
-    shutil.copy(sample_index_path, pages_path)
+    shutil.copy(sample_index_path, project_path)
 
 
 def check_required_files() -> bool:
     is_missing_files = False
 
     # ensure the dsg.yml and index.md files exist
-    index_path = Path("pages", "index.md")
+    index_path = Path("index.md")
     if not index_path.exists():
         print("Could not find index.md! This file is required as your home page")
         is_missing_files = True
@@ -72,28 +73,10 @@ def load_config() -> ProjectConfig:
 
     return config
 
-
-def read_queries(conn_info: ConnectionInfo) -> dict[str, pl.DataFrame]:
-    # read queries from sql directory into dictionary where key is file name (without extension)
-    # and value is a polars dataframe with the query result
-    conn = get_connection(conn_info)
-    query_results = {}
-
-    for file in os.listdir("sql"):
-        filepath = Path("sql", file)
-        with open(filepath) as sql_file:
-            sql = sql_file.read()
-
-        res = conn.read_sql(sql)
-        key = filepath.stem
-        query_results[key] = res
-
-    return query_results
-
-
 def build_site(config: ProjectConfig):
     # read markdown files, render jinja, convert to HTML, then write to dist folder
-    env = Environment(loader=FileSystemLoader(["pages", TEMPLATE_DIR]))
+    # TODO disallow index.md in pages directory
+    env = Environment(loader=FileSystemLoader([".", TEMPLATE_DIR]))
     register_functions(env)
 
     # load queries into environment
@@ -111,3 +94,20 @@ def build_site(config: ProjectConfig):
 
     with open(dist_path / "index.html", "w") as outfile:
         outfile.write(page_html)
+
+def read_queries(conn_info: ConnectionInfo) -> dict[str, pl.DataFrame]:
+    # read queries from sql directory into dictionary where key is file name (without extension)
+    # and value is a polars dataframe with the query result
+    conn = get_connection(conn_info)
+    query_results = {}
+
+    for file in os.listdir("sql"):
+        filepath = Path("sql", file)
+        with open(filepath) as sql_file:
+            sql = sql_file.read()
+
+        res = conn.read_sql(sql)
+        key = filepath.stem
+        query_results[key] = res
+
+    return query_results
