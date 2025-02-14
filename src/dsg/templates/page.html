@@ -31,8 +31,11 @@
 <body>
     <div id="nav">
     {% if pages|length > 0 %}
-        <div class="page-link"><a href="/index.html">home</a></div>
-        <div class="page-link"><a href="/index.html">asdf</a></div>
+        <div class="page-link"><a href="/index.html">Home</a></div>
+
+        {% for name, link in pages.items() %}
+            <div class="page-link"><a href="{{ link }}">{{ name }}</a></div>
+        {% endfor %}
     {% endif %}
     </div>
 

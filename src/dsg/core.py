@@ -73,20 +73,39 @@ def load_config() -> ProjectConfig:
 
     return config
 
+
 def build_site(config: ProjectConfig):
     # read markdown files, render jinja, convert to HTML, then write to dist folder
     # TODO disallow index.md in pages directory
+    # TODO this function needs a refactor, just got it working for now but a little messy
     env = Environment(loader=FileSystemLoader([".", TEMPLATE_DIR]))
     register_functions(env)
 
     # load queries into environment
     context = read_queries(config.connection)
 
+    # render index file
     templ = env.get_template("index.md")
-    content = markdown.markdown(templ.render(**context))
+    index_content = markdown.markdown(templ.render(**context))
+
+    # render other pages
+    pages_content = {} # mapping from page name to rendered html
+    pages_links = {} # mapping from page name to link to be used in href
+    pages_path = Path("pages")
+
+    for page_file in pages_path.iterdir():
+        if not page_file.is_file():
+            continue
+
+        templ = env.get_template(str(page_file))
+        content = markdown.markdown(templ.render(**context))
+
+        page_name = page_file.stem
+        pages_content[page_name] = content
+        pages_links[page_name] = f"/pages/{page_name}.html"
 
     page_templ = env.get_template("page.html")
-    page_html = page_templ.render(title=config.name, content=content, pages=[])
+    page_html = page_templ.render(title=config.name, content=index_content, pages=pages_links)
 
     # create the dist folder if it doesn't exist
     dist_path = Path("dist")
@@ -94,6 +113,17 @@ def build_site(config: ProjectConfig):
 
     with open(dist_path / "index.html", "w") as outfile:
         outfile.write(page_html)
+
+    if len(pages_content) > 0:
+        dist_pages_path = dist_path / "pages"
+        dist_pages_path.mkdir(exist_ok=True)
+
+        for page, content in pages_content.items():
+            page_html = page_templ.render(title=page, content=content, pages=pages_links)
+
+            with open(dist_pages_path / f"{page}.html", "w") as outfile:
+                outfile.write(page_html)
+
 
 def read_queries(conn_info: ConnectionInfo) -> dict[str, pl.DataFrame]:
     # read queries from sql directory into dictionary where key is file name (without extension)
