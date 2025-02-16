@@ -23,18 +23,30 @@
             width: 60%;
         }
 
-        .page-link {
-            margin-bottom: 10px;
+        a.page-link {
+            text-decoration: none;
+            color: rgb(46, 46, 46);
+        }
+
+        .nav-item {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            padding-left: 10px;
+            margin-right: 5px;
+        }
+        
+        .nav-item:hover {
+            background-color: rgb(241, 241, 241);
         }
     </style>
 </head>
 <body>
     <div id="nav">
     {% if pages|length > 0 %}
-        <div class="page-link"><a href="/index.html">Home</a></div>
+        <div class="nav-item"><a class="page-link" href="/index.html">Home</a></div>
 
         {% for name, link in pages.items() %}
-            <div class="page-link"><a href="{{ link }}">{{ name }}</a></div>
+            <div class="nav-item"><a class="page-link" href="{{ link }}">{{ name }}</a></div>
         {% endfor %}
     {% endif %}
     </div>
