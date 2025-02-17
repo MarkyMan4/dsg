@@ -2,8 +2,7 @@ import argparse
 import shutil
 import sys
 
-from .core import (build_site, check_required_files, initialize_project,
-                   load_config)
+from .core import build_site, check_required_files, initialize_project
 
 
 def parse_arguments():
@@ -33,8 +32,7 @@ def main() -> None:
         if check_required_files():
             sys.exit()
         print(f"building...")
-        config = load_config()
-        build_site(config)
+        build_site()
         print("Build complete! The build is available in the dist folder")
 
     elif args.subcommand == "clean":
