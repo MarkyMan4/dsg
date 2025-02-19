@@ -69,6 +69,16 @@ class SiteBuilder:
     def _render_page(
         self, source_file: Path, target_path: Path, context: dict[str, pl.DataFrame]
     ):
+        """
+        Render a markdown template and write to an HTML file in the dist directory
+
+        :param source_file: Source markdown file, path relative to project root
+        :type source_file: Path
+        :param target_path: Target path to write the rendered file to, relative to the dist folder
+        :type target_path: Path
+        :param context: Context to pass to Jinja template when rendering
+        :type context: dict[str, pl.DataFrame]
+        """
         # render markdown template and convert to html
         md_templ = self.env.get_template(str(source_file))
         content = markdown.markdown(md_templ.render(**context))
