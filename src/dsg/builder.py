@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import markdown
+import markdown.blockparser
 import polars as pl
 import yaml
 from jinja2 import Environment, FileSystemLoader
@@ -38,9 +39,16 @@ class SiteBuilder:
         pages_path = Path(PAGES_DIR)
         pages_links = {}
 
+        # TODO find a way to only convert the markdown once. I convert it here to get the metadata, then again later to render the pages
         for page in pages_path.iterdir():
-            page_name = page.stem
-            pages_links[page_name] = f"/{PAGES_DIR}/{page_name}.html"
+            md = markdown.Markdown(extensions=["meta"])
+            md.convert(page.read_text(encoding="utf-8"))
+
+            # read the metadata to get the page title
+            file_stem = page.stem
+            metadata_title = md.Meta.get("title")
+            page_name = file_stem if metadata_title is None else metadata_title[0] # metadata is given as list, take the first element if not None
+            pages_links[page_name] = f"/{PAGES_DIR}/{file_stem}.html"
 
         return pages_links
 
@@ -49,13 +57,19 @@ class SiteBuilder:
         # TODO disallow index.md in pages directory
         context = self._read_queries(self.config.connection)
 
+        """
+        Idea for getting metadata:
+        1. before working on index, convert the index and all pages to HTML, keeping track of metadata
+        2. store in some data structure - dict where keys are file name and value is some "Page" object that stores content, title and link
+        3. call render_page for index, 
+        """
+
         # create the index file first
         self._render_page(
             source_file=Path(INDEX_FILE), target_path=Path("."), context=context
         )
 
         # render other pages
-        pages_content = {}  # mapping from page name to rendered html
         pages_path = Path(PAGES_DIR)
 
         for page_file in pages_path.iterdir():
@@ -81,6 +95,7 @@ class SiteBuilder:
         """
         # render markdown template and convert to html
         md_templ = self.env.get_template(str(source_file))
+        
         content = markdown.markdown(md_templ.render(**context))
 
         # render HTML page by injecting rendered markdown into page template, and write to dist folder
