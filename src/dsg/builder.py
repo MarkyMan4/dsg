@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 import markdown
@@ -15,11 +16,18 @@ from dsg.jinja_functions import register_functions
 from dsg.models import ConnectionInfo, ProjectConfig
 
 
+@dataclass
+class Page:
+    file_stem: str  # file name without extension
+    title: str
+    link: str
+    content: str
+
+
 class SiteBuilder:
     def __init__(self):
         self.config = self._load_config()
         self.env = self._create_environment()
-        self.pages = self._make_page_links()
 
     def _load_config(self):
         # load config file and set up the jinja environment
@@ -34,82 +42,71 @@ class SiteBuilder:
 
         return env
 
-    def _make_page_links(self) -> dict[str, str]:
-        # mapping from page name to link to be used in href
-        pages_path = Path(PAGES_DIR)
-        pages_links = {}
-
-        # TODO find a way to only convert the markdown once. I convert it here to get the metadata, then again later to render the pages
-        for page in pages_path.iterdir():
-            md = markdown.Markdown(extensions=["meta"])
-            md.convert(page.read_text(encoding="utf-8"))
-
-            # read the metadata to get the page title
-            file_stem = page.stem
-            metadata_title = md.Meta.get("title")
-            page_name = file_stem if metadata_title is None else metadata_title[0] # metadata is given as list, take the first element if not None
-            pages_links[page_name] = f"/{PAGES_DIR}/{file_stem}.html"
-
-        return pages_links
-
     def build(self):
-        # read markdown files, render jinja, convert to HTML, then write to dist folder
+        """
+        read markdown files, render jinja, convert to HTML, then write to dist folder
+        """
+
         # TODO disallow index.md in pages directory
         context = self._read_queries(self.config.connection)
+        pages = self._read_pages(context)
+        page_links = {page.title: page.link for page in pages}
 
-        """
-        Idea for getting metadata:
-        1. before working on index, convert the index and all pages to HTML, keeping track of metadata
-        2. store in some data structure - dict where keys are file name and value is some "Page" object that stores content, title and link
-        3. call render_page for index, 
-        """
+        index_page = self._parse_page(Path(INDEX_FILE), context, is_index=True)
 
         # create the index file first
-        self._render_page(
-            source_file=Path(INDEX_FILE), target_path=Path("."), context=context
-        )
+        self._render_page(page=index_page, target_path=Path(""), links=page_links)
 
         # render other pages
+        for page in pages:
+            self._render_page(page=page, target_path=Path(PAGES_DIR), links=page_links)
+
+    def _read_pages(self, context: dict[str, pl.DataFrame]) -> list[Page]:
+        # parse each page in the pages directory into a Page object
+        pages = []
         pages_path = Path(PAGES_DIR)
 
-        for page_file in pages_path.iterdir():
-            if not page_file.is_file():
+        for page in pages_path.iterdir():
+            if not page.is_file():
                 continue
 
-            self._render_page(
-                source_file=page_file, target_path=pages_path, context=context
-            )
+            parsed = self._parse_page(page, context)
+            pages.append(parsed)
 
-    def _render_page(
-        self, source_file: Path, target_path: Path, context: dict[str, pl.DataFrame]
-    ):
-        """
-        Render a markdown template and write to an HTML file in the dist directory
+        return pages
 
-        :param source_file: Source markdown file, path relative to project root
-        :type source_file: Path
-        :param target_path: Target path to write the rendered file to, relative to the dist folder
-        :type target_path: Path
-        :param context: Context to pass to Jinja template when rendering
-        :type context: dict[str, pl.DataFrame]
-        """
-        # render markdown template and convert to html
-        md_templ = self.env.get_template(str(source_file))
-        
-        content = markdown.markdown(md_templ.render(**context))
+    def _parse_page(
+        self, page: Path, context: dict[str, pl.DataFrame], is_index=False
+    ) -> Page:
+        # given a page, render the markdown template, convert to HTML and create Page object with title, link and content
+        md = markdown.Markdown(extensions=["meta"])
+        md_templ = self.env.get_template(str(page))
+        html = md.convert(md_templ.render(**context))
 
-        # render HTML page by injecting rendered markdown into page template, and write to dist folder
-        # TODO allow user defined page title
-        base_file_name = source_file.stem
+        # read the metadata to get the page title
+        file_stem = page.stem
+        metadata_title = md.Meta.get("title")
+        title = (
+            file_stem if metadata_title is None else metadata_title[0]
+        )  # metadata is given as list, take the first element if not None
+
+        link = f"/{file_stem}.html"
+        if not is_index:
+            link = f"/{PAGES_DIR}" + link
+
+        return Page(file_stem=file_stem, title=title, link=link, content=html)
+
+    def _render_page(self, page: Page, target_path: Path, links: dict[str, str]):
+        # fille in the page.html template with page content and write to dist folder
         html_templ = self.env.get_template(PAGE_TEMPLATE_FILE)
         page_html = html_templ.render(
-            title=base_file_name, content=content, pages=self.pages
+            title=page.title, content=page.content, pages=links
         )
 
         output_path = Path(DIST_DIR, target_path)
         output_path.mkdir(exist_ok=True)
 
-        with open(output_path / f"{base_file_name}.html", "w") as outfile:
+        with open(output_path / f"{page.file_stem}.html", "w") as outfile:
             outfile.write(page_html)
 
     def _read_queries(self, conn_info: ConnectionInfo) -> dict[str, pl.DataFrame]:
