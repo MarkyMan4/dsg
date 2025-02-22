@@ -1,3 +1,7 @@
+---
+title: Sample Project
+---
+
 # My DSG Project
 
 Hello data!
