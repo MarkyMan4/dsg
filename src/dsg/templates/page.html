@@ -43,7 +43,7 @@
 <body>
     <div id="nav">
     {% if pages|length > 0 %}
-        <div class="nav-item"><a class="page-link" href="/index.html">Home</a></div>
+        <div class="nav-item"><a class="page-link" href="/index.html"><b>Home</b></a></div>
 
         {% for name, link in pages.items() %}
             <div class="nav-item"><a class="page-link" href="{{ link }}">{{ name }}</a></div>
