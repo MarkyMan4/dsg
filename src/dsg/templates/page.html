@@ -8,7 +8,6 @@
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
-            margin-top: 20px;
         }
 
         @media all and (min-width: 1200px) {
@@ -18,16 +17,34 @@
             }
         }
 
-        #nav {
+        .page-header {
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid rgb(196, 196, 196);
+            padding: 10px;
+            padding-bottom: 0px;
+            z-index: 1;
+            background-color: white;
+            display: block;
+        }
+
+        .home-link {
+            display: inline;
+        }
+
+        .nav {
             display: inline-block;
             vertical-align: top;
             margin-top: 10px;
             width: 20%;
+            position: sticky;
+            list-style: none;
         }
 
-        #content {
+        .content {
             display: inline-block;
-            width: 60%;
+            margin-top: 10px;
+            width: 100%;
         }
 
         a.page-link {
@@ -36,10 +53,8 @@
         }
 
         .nav-item {
-            padding-top: 5px;
-            padding-bottom: 5px;
-            padding-left: 10px;
-            margin-right: 5px;
+            padding: 10px;
+            display: inline;
         }
         
         .nav-item:hover {
@@ -48,17 +63,18 @@
     </style>
 </head>
 <body>
-    <div id="nav">
-    {% if pages|length > 0 %}
-        <div class="nav-item"><a class="page-link" href="/index.html"><b>Home</b></a></div>
-
-        {% for name, link in pages.items() %}
-            <div class="nav-item"><a class="page-link" href="{{ link }}">{{ name }}</a></div>
-        {% endfor %}
-    {% endif %}
-    </div>
-
-    <div id="content">
+    <header class="page-header">
+        <h2 class="home-link"><a class="page-link" href="/index.html"><b>dsg</b></a></h2>
+        {% if pages|length > 0 %}
+            <ul class="nav">
+                {% for name, link in pages.items() %}
+                    <li class="nav-item"><a class="page-link" href="{{ link }}">{{ name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </header>
+    
+    <div class="content">
         {{ content }}
     </div>
 </body>
