@@ -1,5 +1,7 @@
 name: sample_proj
 
+display_name: Sample Project
+
 connection:
   type: duckdb
   settings:

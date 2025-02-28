@@ -1,5 +1,5 @@
 ---
-title: Sample Project
+title: Home
 ---
 
 # My DSG Project

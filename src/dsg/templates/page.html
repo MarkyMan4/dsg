@@ -34,10 +34,6 @@
 
         .nav {
             display: inline-block;
-            vertical-align: top;
-            margin-top: 10px;
-            width: 20%;
-            position: sticky;
             list-style: none;
         }
 
@@ -64,7 +60,11 @@
 </head>
 <body>
     <header class="page-header">
-        <h2 class="home-link"><a class="page-link" href="/index.html"><b>dsg</b></a></h2>
+        <h2 class="home-link">
+            <a class="page-link" href="/index.html">
+                {{ site_name }}
+            </a>
+        </h2>
         {% if pages|length > 0 %}
             <ul class="nav">
                 {% for name, link in pages.items() %}

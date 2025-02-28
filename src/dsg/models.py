@@ -8,4 +8,5 @@ class ConnectionInfo(BaseModel):
 
 class ProjectConfig(BaseModel):
     name: str
+    display_name: str
     connection: ConnectionInfo

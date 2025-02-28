@@ -54,9 +54,8 @@ class SiteBuilder:
         pages = self._read_pages(context)
         page_links = {page.title: page.link for page in pages}
 
-        index_page = self._parse_page(Path(INDEX_FILE), context, is_index=True)
-
         # create the index file first
+        index_page = self._parse_page(Path(INDEX_FILE), context, is_index=True)
         self._render_page(page=index_page, target_path=Path(""), links=page_links)
 
         # render other pages
@@ -83,8 +82,8 @@ class SiteBuilder:
         self, page: Path, context: dict[str, pl.DataFrame], is_index=False
     ) -> Page:
         """
-        Given a page, render the markdown template, convert to HTML and create Page 
-        object with title, link and content
+        Given a page, render the markdown template, convert to HTML (this will be the "content" 
+        section in the final page) and create Page object with title, link and content
         """
         md = markdown.Markdown(extensions=["meta"])
         md_templ = self.env.get_template(str(page))
@@ -93,9 +92,13 @@ class SiteBuilder:
         # read the metadata to get the page title
         file_stem = page.stem
         metadata_title = md.Meta.get("title")
+
+        # if no title in page metadata, index file uses project display name as title, 
+        # other pages use the file stem
+        default_title = file_stem if not is_index else self.config.display_name
         title = (
-            file_stem if metadata_title is None else metadata_title[0]
-        )  # metadata is given as list, take the first element if not None
+            default_title  if metadata_title is None else metadata_title[0]
+        )
 
         link = f"/{file_stem}.html"
         if not is_index:
@@ -109,7 +112,7 @@ class SiteBuilder:
         """
         html_templ = self.env.get_template(PAGE_TEMPLATE_FILE)
         page_html = html_templ.render(
-            title=page.title, content=page.content, pages=links
+            title=page.title, content=page.content, pages=links, site_name=self.config.display_name
         )
 
         output_path = Path(DIST_DIR, target_path)

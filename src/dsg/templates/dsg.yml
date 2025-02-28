@@ -1,6 +1,9 @@
 name: {{ project_name }}
 
+# Change this! This will show in your site header and will be the link to your home page
+display_name: My Project
+
 connection:
   type: duckdb
   settings:
-    file: path/to/your/database.duckdb # change this!
+    file: path/to/your/database.duckdb # Change this!
