@@ -13,15 +13,7 @@ from dsg.constants import (CONFIG_FILE, DIST_DIR, INDEX_FILE,
                            PAGE_TEMPLATE_FILE, PAGES_DIR, SQL_DIR,
                            TEMPLATE_DIR)
 from dsg.jinja_functions import register_functions
-from dsg.models import ConnectionInfo, ProjectConfig
-
-
-@dataclass
-class Page:
-    file_stem: str  # file name without extension
-    title: str
-    link: str
-    content: str
+from dsg.models import ConnectionInfo, Page, ProjectConfig
 
 
 class SiteBuilder:
@@ -47,8 +39,8 @@ class SiteBuilder:
         read markdown files, render jinja, convert to HTML, then write to dist folder
         """
 
-        # Load queries in DataFrames and parse pages/convert to HTML. Pages are 
-        # converted right away because I need to read them to get the metadata from them 
+        # Load queries in DataFrames and parse pages/convert to HTML. Pages are
+        # converted right away because I need to read them to get the metadata from them
         # (e.g. page title). This metadata is needed later when writing the final HTML file
         context = self._read_queries(self.config.connection)
         pages = self._read_pages(context)
@@ -82,7 +74,7 @@ class SiteBuilder:
         self, page: Path, context: dict[str, pl.DataFrame], is_index=False
     ) -> Page:
         """
-        Given a page, render the markdown template, convert to HTML (this will be the "content" 
+        Given a page, render the markdown template, convert to HTML (this will be the "content"
         section in the final page) and create Page object with title, link and content
         """
         md = markdown.Markdown(extensions=["meta"])
@@ -93,12 +85,10 @@ class SiteBuilder:
         file_stem = page.stem
         metadata_title = md.Meta.get("title")
 
-        # if no title in page metadata, index file uses project display name as title, 
+        # if no title in page metadata, index file uses project display name as title,
         # other pages use the file stem
         default_title = file_stem if not is_index else self.config.display_name
-        title = (
-            default_title  if metadata_title is None else metadata_title[0]
-        )
+        title = default_title if metadata_title is None else metadata_title[0]
 
         link = f"/{file_stem}.html"
         if not is_index:
@@ -112,7 +102,10 @@ class SiteBuilder:
         """
         html_templ = self.env.get_template(PAGE_TEMPLATE_FILE)
         page_html = html_templ.render(
-            title=page.title, content=page.content, pages=links, site_name=self.config.display_name
+            title=page.title,
+            content=page.content,
+            pages=links,
+            site_name=self.config.display_name,
         )
 
         output_path = Path(DIST_DIR, target_path)
