@@ -8,6 +8,9 @@ from jinja2 import Environment
 #      when parsing config, import from their file and load those functions to the environment
 #      the only requirement for custom functions is that it returns a string to render on the page
 
+def table(data: pl.DataFrame = None):
+    # TODO implement this
+    pass
 
 def bar_chart(
     data: pl.DataFrame = None,
