@@ -14,7 +14,7 @@ def parse_arguments():
     subparsers.add_parser("build", help="build project as a static site")
     init_parser.add_argument("project_name")
     subparsers.add_parser("clean", help="remove build artifacts")
-    subparsers.add_parser("serve", help="serve the static site locally")
+    subparsers.add_parser("serve", help="serve the site locally")
 
     args = parser.parse_args()
 
